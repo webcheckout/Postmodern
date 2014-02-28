@@ -423,6 +423,26 @@
    :left-join 'your-table :on (:= 'x.field-2 'your-table.field-1)
    :where (:not-null 'a.field-3))</pre>
 
+    <p class="desc">Joins may be chained (meaning that one join clause
+    simply follows another) or nested (meaning that one or both sides
+    of a join clause may themselves be join clauses rather than table
+    names). The nested form is necessary when mixing join types to
+    allow the precise nature of each side of the join to be
+    specified. An example:</p>
+
+    <pre class="code desc">
+;; chaining, all inner joins
+(:select '*
+  :from 'foo
+  :inner-join 'bar :on (:= 'foo.a 'bar.b)
+  :inner-join 'baz :on (:= 'bar.x 'baz.y))
+
+;; nesting, mix of join types
+(:select :*
+  :from 'foo
+  :left-join ('bar :inner-join 'baz :on (:= 'bar.x 'baz.y))
+  :on (:= 'foo.a 'bar.b))</pre>
+
     <p class="def"><span>sql-op</span> <a name="limit"></a>:limit (query amount &amp;optional offset)</p>
 
     <p class="desc">In S-SQL limit is not part of the select operator,
