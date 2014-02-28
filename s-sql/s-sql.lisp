@@ -555,7 +555,12 @@ with a given arity."
 (defun expand-joins (args)
   "Helper for the select operator. Turns the part following :from into
 the proper SQL syntax for joining tables."
-  (labels ((expand-join (natural-p)
+  (labels ((expand-table-or-join (table-or-join)
+             (if (and (consp table-or-join)
+                      (not (eql (car table-or-join) 'quote)))
+               (expand-joins table-or-join)
+               (sql-expand table-or-join)))
+           (expand-join (natural-p)
              (let ((type (first args)) (table (second args)) kind param)
                (unless table (sql-error "Incomplete join clause in select."))
                (setf args (cddr args))
@@ -568,7 +573,8 @@ the proper SQL syntax for joining tables."
                  ,(ecase type
                     (:left-join "LEFT") (:right-join "RIGHT")
                     (:inner-join "INNER") (:outer-join "FULL OUTER")
-                    (:cross-join "CROSS")) " JOIN " ,@(sql-expand table)
+                    (:cross-join "CROSS")) " JOIN "
+                    ,@(expand-table-or-join table)
                  ,@(unless (or natural-p (eq type :cross-join))
                      (ecase kind
                        (:on `(" ON " . ,(sql-expand param)))
@@ -585,7 +591,7 @@ the proper SQL syntax for joining tables."
                          (when first (sql-error ":from clause starts with a join."))
                          (pop args)
                          (expand-join t))
-                        (t `(,@(if first () '(", ")) ,@(sql-expand (pop args))))))))
+                        (t `(,@(if first () '(", ")) ,@(expand-table-or-join (pop args))))))))
 
 (def-sql-op :select (&rest args)
   (split-on-keywords ((vars *) (distinct - ?) (distinct-on * ?) (from * ?) (window ?) (where ?) (group-by * ?)
