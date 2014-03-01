@@ -557,8 +557,7 @@ with a given arity."
 the proper SQL syntax for joining tables."
   (labels ((expand-table-or-join (table-or-join)
              (if (and (consp table-or-join)
-                      (not (eql (car table-or-join) 'quote))
-                      (not (eql (car table-or-join) :as)))
+                      (not (member (car table-or-join) '(quote :as))))
                (expand-joins table-or-join)
                (sql-expand table-or-join)))
            (expand-join (natural-p)
