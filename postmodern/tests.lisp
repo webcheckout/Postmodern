@@ -176,7 +176,7 @@
 
 (test ensure-transaction
   (with-test-connection
-    (with-transaction (transaction-1)
+    (with-transaction ()
       (ensure-transaction
         (is (eql postmodern::*transaction-level* 1))))
     (is (eql postmodern::*transaction-level* 0))
@@ -280,7 +280,7 @@
     (is (string= "3" (test-c (get-dao 'test-col-name "1"))))))
 
 ;; create two tables with the same name in two different
-;; namesapces.
+;; namespaces.
 (test namespace
   (with-test-connection
     (is (not (table-exists-p 'test-uniq)))

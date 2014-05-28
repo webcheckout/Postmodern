@@ -187,7 +187,7 @@ values.)"
             (value-fields (remove-if (lambda (x) (or (member x key-fields) (member x ghost-fields))) fields))
             (table-name (dao-table-name ,class)))
        (labels ((field-sql-name (field)
-                  (list :raw (car (find field (slot-value ,class 'column-map) :key #'cdr :test #'eql))))
+                  (make-symbol (car (find field (slot-value ,class 'column-map) :key #'cdr :test #'eql))))
                 (test-fields (fields)
                   `(:and ,@(loop :for field :in fields :collect (list := (field-sql-name field) '$$))))
                 (set-fields (fields)
@@ -236,7 +236,7 @@ values.)"
                            (push field unbound)))
 
              (let* ((values (mapcan (lambda (x) (list (field-sql-name x) (slot-value object x)))
-                                    (remove-if (lambda (x) (member x ghost-fields)) bound)))
+                                    (remove-if (lambda (x) (member x ghost-fields)) bound) ))
                     (returned (query (sql-compile `(:insert-into ,table-name
                                                     :set ,@values
                                                     ,@(when unbound (cons :returning (mapcar #'field-sql-name unbound)))))
