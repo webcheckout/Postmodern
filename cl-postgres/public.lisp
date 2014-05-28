@@ -12,6 +12,7 @@
    (meta :initform nil)
    (available :initform t :accessor connection-available)
    (parameters :accessor connection-parameters)
+   (backend-info :accessor connection-backend-info :initform '())
    (timestamp-format :accessor connection-timestamp-format))
   (:documentation "Representatino of a database connection. Contains
 login information in order to be able to automatically re-establish a
@@ -44,6 +45,7 @@ currently connected."
                              :password password :socket nil :db database :ssl use-ssl
                              :service service)))
     (initiate-connection conn)
+    (setf (connection-backend-info conn) (exec-query conn "SELECT current_database(), current_user, pg_backend_pid(), version()" 'cl-postgres:alist-row-reader))
     conn))
 
 #+(and (or sbcl ccl allegro) unix)

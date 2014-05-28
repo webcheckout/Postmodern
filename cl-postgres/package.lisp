@@ -13,6 +13,7 @@
            #:database-socket-error
            #:connection-meta
            #:connection-parameters
+           #:connection-backend-info
            #:open-database
            #:reopen-database
            #:database-open-p
