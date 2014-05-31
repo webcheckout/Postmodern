@@ -35,16 +35,21 @@ before the body unwinds."
       (let ((ignored (gensym)))
         `(call-with-transaction (lambda (,ignored) (declare (ignore ,ignored)) ,@body)))))
 
-(defun abort-transaction (transaction)
-  "Immediately abort an open transaction."
+(defgeneric abort-transaction (transaction)
+  (:documentation "Immediately abort TRANSACTION. If TRANSACTION is not open, because it has been
+successfully commited, this method will still be called and should do nothing."))
+
+(defmethod abort-transaction ((transaction transaction-handle))
   (when (transaction-open-p transaction)
     (let ((*database* (transaction-connection transaction)))
       (execute "ABORT"))
     (setf (transaction-open-p transaction) nil)
     (mapc #'funcall (abort-hooks transaction))))
 
-(defun commit-transaction (transaction)
-  "Immediately commit an open transaction."
+(defgeneric commit-transaction (transaction)
+  (:documentation "Immediately commit an open transaction."))
+
+(defmethod commit-transaction ((transaction transaction-handle))
   (when (transaction-open-p transaction)
     (let ((*database* (transaction-connection transaction)))
       (execute "COMMIT"))
@@ -78,8 +83,10 @@ variable that can be used to release or rolled back before the body
 unwinds, and the SQL name of the savepoint."
   `(call-with-savepoint ',name (lambda (,name) (declare (ignorable ,name)) ,@body)))
 
-(defun rollback-savepoint (savepoint)
-  "Immediately roll back a savepoint, aborting it results."
+(defgeneric rollback-savepoint (savepoint)
+  (:documentation "Immediately roll back a savepoint, aborting it results."))
+
+(defmethod rollback-savepoint ((savepoint savepoint-handle))
   (when (savepoint-open-p savepoint)
     (let ((*database* (savepoint-connection savepoint)))
       (execute (format nil "ROLLBACK TO SAVEPOINT ~A"
@@ -87,8 +94,12 @@ unwinds, and the SQL name of the savepoint."
     (setf (savepoint-open-p savepoint) nil)
     (mapc #'funcall (abort-hooks savepoint))))
 
-(defun release-savepoint (savepoint)
-  "Immediately release a savepoint, commiting its results."
+(defgeneric release-savepoint (savepoint)
+  (:documentation "Immediately release a savepoint, commiting its results. If the SAVEPOINT is not
+open, because it has been successfully committed, this function will still be called and should do
+nothing."))
+
+(defmethod release-savepoint ((savepoint savepoint-handle))
   (when (savepoint-open-p savepoint)
     (let ((*database* (savepoint-connection savepoint)))
       (execute (format nil "RELEASE SAVEPOINT ~A"
