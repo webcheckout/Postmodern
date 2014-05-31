@@ -3,6 +3,9 @@
 (defparameter *transaction-level* 0)
 (defparameter *current-logical-transaction* nil)
 
+(defparameter *current-savepoint* nil)
+(defparameter *current-transaction* nil)
+
 (defparameter *transaction-class* 'transaction-handle
   "Name of class to be used for transaction-handle objects.")
 
@@ -26,7 +29,8 @@ arguments) to be executed at commit and abort time, respectively."))
     (unwind-protect
          (multiple-value-prog1
              (let ((*transaction-level* (1+ *transaction-level*))
-                   (*current-logical-transaction* transaction))
+                   (*current-logical-transaction* transaction)
+                   (*current-transaction* transaction))
                (funcall body transaction))
            (commit-transaction transaction))
       (abort-transaction transaction))))
@@ -77,7 +81,8 @@ associated database connection of a savepoint."))
     (unwind-protect
          (multiple-value-prog1
              (let ((*transaction-level* (1+ *transaction-level*))
-                   (*current-logical-transaction* savepoint))
+                   (*current-logical-transaction* savepoint)
+                   (*current-savepoint* savepoint))
                (funcall body savepoint))
            (release-savepoint savepoint))
       (rollback-savepoint savepoint))))
