@@ -3,6 +3,12 @@
 (defparameter *transaction-level* 0)
 (defparameter *current-logical-transaction* nil)
 
+(defparameter *transaction-class* 'transaction-handle
+  "Name of class to be used for transaction-handle objects.")
+
+(defparameter *savepoint-class* 'savepoint-handle
+  "Name of class to be used for savepoint-handle objects.")
+
 (defclass transaction-handle ()
   ((open-p :initform t :accessor transaction-open-p)
    (connection :initform *database* :reader transaction-connection)
@@ -15,7 +21,7 @@ abort-hooks hold lists of functions (which should require no
 arguments) to be executed at commit and abort time, respectively."))
 
 (defun call-with-transaction (body)
-  (let ((transaction (make-instance 'transaction-handle)))
+  (let ((transaction (make-instance *transaction-class*)))
     (execute "BEGIN")
     (unwind-protect
          (multiple-value-prog1
@@ -66,7 +72,7 @@ successfully commited, this method will still be called and should do nothing.")
 associated database connection of a savepoint."))
 
 (defun call-with-savepoint (name body)
-  (let ((savepoint (make-instance 'savepoint-handle :name (to-sql-name name))))
+  (let ((savepoint (make-instance *savepoint-class* :name (to-sql-name name))))
     (execute (format nil "SAVEPOINT ~A" (savepoint-name savepoint)))
     (unwind-protect
          (multiple-value-prog1

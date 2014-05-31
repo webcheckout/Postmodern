@@ -28,6 +28,8 @@
    #:with-logical-transaction #:ensure-transaction #:abort-logical-transaction #:commit-logical-transaction
    #:with-transaction #:commit-transaction #:abort-transaction
    #:with-savepoint #:rollback-savepoint #:release-savepoint
+   #:*transaction-class* #:*savepoint-class*
+   #:transaction-handle #:savepoint-handle
    #:abort-hooks #:commit-hooks
    #:db-null #:coalesce
 
